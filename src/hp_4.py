@@ -46,7 +46,7 @@ def fees_report(infile, outfile):
                     dict_obj["patron_id"]=item['patron_id']
                     dict_obj["late_fees"]=float(0)
                     list_obj.append(dict_obj)
-        
+            aggregated_data = {}
             aggregated_data = {dict['patron_id']: aggregated_data.get(dict['patron_id'], 0) + dict['late_fees'] for dict in list_obj}
     
             final_list = [{'patron_id': key, 'late_fees': value} for key, value in aggregated_data.items()]
