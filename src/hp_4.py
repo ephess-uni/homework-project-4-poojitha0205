@@ -56,10 +56,10 @@ def fees_report(infile, outfile):
                         if len(str(value).split('.')[-1]) != 2:
                             dict[key] = str(value)+'0'
     
-        with open(outfile,"w", newline="") as file:
-            writer = DictWriter(file, fieldnames=['patron_id', 'late_fees'])
-            writer.writeheader()
-            writer.writerows(final_list)
+    with open(outfile,"w", newline="") as file:
+        writer = DictWriter(file, fieldnames=['patron_id', 'late_fees'])
+        writer.writeheader()
+        writer.writerows(final_list)
 
     
 
