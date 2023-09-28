@@ -32,7 +32,21 @@ def add_date_range(values, start_date):
 def fees_report(infile, outfile):
     """Calculates late fees per patron id and writes a summary report to
     outfile."""
-    pass
+    with open(infile) as f:
+        reader = DictReader(f)
+        data = [{'patron_id': item['patron_id'], 'late_fees': max(round((datetime.strptime(item['date_returned'], '%m/%d/%Y') - datetime.strptime(item['date_due'], '%m/%d/%Y')).days * 0.25, 2), 0)} for item in reader]
+
+    aggregated_data = defaultdict(float)
+    for entry in data:
+        aggregated_data[entry['patron_id']] += entry['late_fees']
+
+    tax = [{'patron_id': key, 'late_fees': round(value, 2)} for key, value in aggregated_data.items()]
+
+    with open(outfile, "w", newline="") as file:
+        col = ['patron_id', 'late_fees']
+        writer = DictWriter(file, fieldnames=col)
+        writer.writeheader()
+        writer.writerows(tax)
 
 
 # The following main selection block will only run when you choose
