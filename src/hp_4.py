@@ -41,7 +41,7 @@ def fees_report(infile, outfile):
                 if(dates.days>0):
                     dict_obj["patron_id"]=item['patron_id']
                     dict_obj["late_fees"]=round(dates.days*0.25, 2)
-                    dict_obj.append(dict_obj)
+                    list_obj.append(dict_obj)
                 else:
                     dict_obj["patron_id"]=item['patron_id']
                     dict_obj["late_fees"]=float(0)
