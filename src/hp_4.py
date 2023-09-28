@@ -32,21 +32,26 @@ def add_date_range(values, start_date):
 def fees_report(infile, outfile):
     """Calculates late fees per patron id and writes a summary report to
     outfile."""
-    with open(infile) as f:
-        reader = DictReader(f)
-        data = [{'patron_id': item['patron_id'], 'late_fees': max(round((datetime.strptime(item['date_returned'], '%m/%d/%Y') - datetime.strptime(item['date_due'], '%m/%d/%Y')).days * 0.25, 2), 0)} for item in reader]
+with open(infile) as f:
+    data = [
+        {
+            'patron_id': item['patron_id'],
+            'late_fees': round((datetime.strptime(item['date_returned'], '%m/%d/%Y') - datetime.strptime(item['date_due'], '%m/%d/%Y')).days * 0.25, 2) if (datetime.strptime(item['date_returned'], '%m/%d/%Y') - datetime.strptime(item['date_due'], '%m/%d/%Y')).days > 0 else 0
+        }
+        for item in DictReader(f)
+    ]
 
-    aggregated_data = defaultdict(float)
-    for entry in data:
-        aggregated_data[entry['patron_id']] += entry['late_fees']
+aggregated_data = defaultdict(float)
 
-    tax = [{'patron_id': key, 'late_fees': round(value, 2)} for key, value in aggregated_data.items()]
+for entry in data:
+    aggregated_data[entry['patron_id']] += entry['late_fees']
 
-    with open(outfile, "w", newline="") as file:
-        col = ['patron_id', 'late_fees']
-        writer = DictWriter(file, fieldnames=col)
-        writer.writeheader()
-        writer.writerows(tax)
+final_data = [{'patron_id': key, 'late_fees': round(value, 2) if value > 0 else 0} for key, value in aggregated_data.items()]
+
+with open(outfile, "w", newline="") as file:
+    writer = DictWriter(file, fieldnames=['patron_id', 'late_fees'])
+    writer.writeheader()
+    writer.writerows(final_data)
 
 
 # The following main selection block will only run when you choose
