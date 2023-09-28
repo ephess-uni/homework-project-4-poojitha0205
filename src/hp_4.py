@@ -33,36 +33,35 @@ def fees_report(infile, outfile):
     """Calculates late fees per patron id and writes a summary report to
     outfile."""
     with open(infile) as f:
-        l=[]
-        DictReader_obj = DictReader(f)
-        for item in DictReader_obj:
-            sample_dict={}
-            day1=datetime.strptime(item['date_returned'],'%m/%d/%Y')- datetime.strptime(item['date_due'],'%m/%d/%Y') 
-            if(day1.days>0):
-                sample_dict["patron_id"]=item['patron_id']
-                sample_dict["late_fees"]=round(day1.days*0.25, 2)
-                l.append(sample_dict)
-            else:
-                sample_dict["patron_id"]=item['patron_id']
-                sample_dict["late_fees"]=float(0)
-                l.append(sample_dict)
-        aggregated_data = {}
+            list_obj=[]
+            DictReader_obj = DictReader(f)
+            for item in DictReader_obj:
+                dict_obj ={}
+                dates=datetime.strptime(item['date_returned'],'%m/%d/%Y')- datetime.strptime(item['date_due'],'%m/%d/%Y') 
+                if(dates.days>0):
+                    dict_obj["patron_id"]=item['patron_id']
+                    dict_obj["late_fees"]=round(day1.days*0.25, 2)
+                    dict_obj.append(dict_obj)
+                else:
+                    dict_obj["patron_id"]=item['patron_id']
+                    dict_obj["late_fees"]=float(0)
+                    list_obj.append(dict_obj)
+        
+            aggregated_data = {dict['patron_id']: aggregated_data.get(dict['patron_id'], 0) + dict['late_fees'] for dict in list_obj}
+    
+            final_list = [{'patron_id': key, 'late_fees': value} for key, value in aggregated_data.items()]
+            for dict in final_list:
+                for key,value in dict.items():
+                    if key == "late_fees":
+                        if len(str(value).split('.')[-1]) != 2:
+                            dict[key] = str(value)+'0'
+    
+        with open(outfile,"w", newline="") as file:
+            writer = DictWriter(file, fieldnames=['patron_id', 'late_fees'])
+            writer.writeheader()
+            writer.writerows(final_list)
 
-        for dict in l:
-            aggregated_data[dict['patron_id']] = aggregated_data.get(dict['patron_id'], 0) + dict['late_fees']
-
-        t = [{'patron_id': key, 'late_fees': value} for key, value in aggregated_data.items()]
-        for dict in t:
-            for key,value in dict.items():
-                if key == "late_fees":
-                    if len(str(value).split('.')[-1]) != 2:
-                        dict[key] = str(value)+'0'
-
-    with open(outfile,"w", newline="") as file:
-        col = ['patron_id', 'late_fees']
-        writer = DictWriter(file, fieldnames=col)
-        writer.writeheader()
-        writer.writerows(t)
+    
 
 # The following main selection block will only run when you choose
 # "Run -> Module" in IDLE.  Use this section to run test code.  The
