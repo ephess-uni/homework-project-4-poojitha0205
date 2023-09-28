@@ -33,26 +33,36 @@ def fees_report(infile, outfile):
     """Calculates late fees per patron id and writes a summary report to
     outfile."""
     with open(infile) as f:
-            l=[]
-            DictReader_obj = DictReader(f)
-            for item in DictReader_obj:
-                sample_dict={}
-                day1=datetime.strptime(item['date_returned'],'%m/%d/%Y')- datetime.strptime(item['date_due'],'%m/%d/%Y') 
-                if(day1.days>0):
-                    sample_dict["patron_id"]=item['patron_id']
-                    sample_dict["late_fees"]=round(day1.days*0.25, 2)
-                    l.append(sample_dict)
-                else:
-                    sample_dict["patron_id"]=item['patron_id']
-                    sample_dict["late_fees"]=float(0)
-                    l.append(sample_dict)
-            t = [{'patron_id': key, 'late_fees': f"{value:.2f}" if value > 0 else '0.00'} for key, value in {item['patron_id']: aggregated_data.get(item['patron_id'], 0) + item['late_fees'] for item in l}.items()]
-        
+        l=[]
+        DictReader_obj = DictReader(f)
+        for item in DictReader_obj:
+            sample_dict={}
+            day1=datetime.strptime(item['date_returned'],'%m/%d/%Y')- datetime.strptime(item['date_due'],'%m/%d/%Y') 
+            if(day1.days>0):
+                sample_dict["patron_id"]=item['patron_id']
+                sample_dict["late_fees"]=round(day1.days*0.25, 2)
+                l.append(sample_dict)
+            else:
+                sample_dict["patron_id"]=item['patron_id']
+                sample_dict["late_fees"]=float(0)
+                l.append(sample_dict)
+        aggregated_data = {}
+
+        for dict in l:
+            aggregated_data[dict['patron_id']] = aggregated_data.get(dict['patron_id'], 0) + dict['late_fees']
+
+        t = [{'patron_id': key, 'late_fees': value} for key, value in aggregated_data.items()]
+        for dict in t:
+            for key,value in dict.items():
+                if key == "late_fees":
+                    if len(str(value).split('.')[-1]) != 2:
+                        dict[key] = str(value)+'0'
+
     with open(outfile,"w", newline="") as file:
-            col = ['patron_id', 'late_fees']
-            writer = DictWriter(file, fieldnames=col)
-            writer.writeheader()
-            writer.writerows(t)    
+        col = ['patron_id', 'late_fees']
+        writer = DictWriter(file, fieldnames=col)
+        writer.writeheader()
+        writer.writerows(t)
 
 # The following main selection block will only run when you choose
 # "Run -> Module" in IDLE.  Use this section to run test code.  The
